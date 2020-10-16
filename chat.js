@@ -5,6 +5,8 @@ let chatbox = document.getElementById('chat-textbox');
 let typing = document.getElementById('chat-typing-indicator');
 let connected_ul = document.getElementById('nav-chat-connected-list');
 
+let nick;
+let ws;
 let typingUsers = [];
 
 function chatMention(user) {
@@ -13,13 +15,13 @@ function chatMention(user) {
 }
 
 function connect(username) {
-    const ws = new WebSocket(`ws://${document.location.hostname}:9898/`);
+    nick = username;
+    ws = new WebSocket(`ws://${document.location.hostname}:9898/`);
     document.getElementById('app-chat-header-name').innerHTML = `<b>${new URL("ws://127.0.0.1:9898/").host}</b>`;
 
     let userConnected = [];
 
     function updateTyping() {
-
         switch (typingUsers.length) {
             case 0:
                 typing.innerHTML = '<br>';
@@ -36,7 +38,7 @@ function connect(username) {
     }
 
     function updateConnected() {
-        connected_ul.innerHTML = ""
+        connected_ul.innerHTML = "";
 
         for (let i in userConnected) {
             connected_ul.innerHTML += `<li class="nav-chat-connected-user" onclick="chatMention('${userConnected[i]}')">${userConnected[i]}</li>`;
@@ -47,7 +49,7 @@ function connect(username) {
         chatbox.disabled = false;
         ws.send(JSON.stringify({
             type: "newConnection",
-            name: username,
+            name: nick,
             nameColor: nameColor
         }));
     };
@@ -59,13 +61,15 @@ function connect(username) {
             let json = JSON.parse(msg.data);
             switch (json.type) {
                 case "newConnection":
-                    chat.innerHTML += `<i>${json.data} is connected.</i><br>`;
-                    userConnected = json.onlineUser;
-                    updateConnected();
-                    break;
+                    if (json.name != nick) {
+                        chat.innerHTML += `<i>${json.name} is connected.</i><br>`;
+                        userConnected = json.onlineUser;
+                        updateConnected();
+                        break;
+                    }
 
                 case "connected":
-                    chat.innerHTML += `<i>You're successfully connected as ${json.data}.</i><br>`;
+                    chat.innerHTML += `<i>You're successfully connected as ${json.name}.</i><br>`;
                     userConnected = json.onlineUser;
                     updateConnected();
                     break;
@@ -73,18 +77,18 @@ function connect(username) {
                 case "nameInvalid":
                     userConnected = json.onlineUser;
                     updateConnected();
-                    while (userConnected.includes(username)) {
-                        username = prompt('Username already taken, choose another one.', 'anon').trim();
+                    while (userConnected.includes(nick)) {
+                        nick = prompt('Username already taken, choose another one.', 'anon').trim();
                     }
                     ws.send(JSON.stringify({
                         type: "newConnection",
-                        name: username,
+                        name: nick,
                         nameColor: nameColor
                     }))
                     break;
 
                 case "typing":
-                    if (json.name != username) {
+                    if (json.name != nick) {
                         if (json.data) {
                             if (!typingUsers.includes(json.name)) {
                                 typingUsers.push(json.name);
@@ -97,6 +101,11 @@ function connect(username) {
                             }
                         }
                     }
+                    break;
+
+                case "editNick":
+                    userConnected = json.onlineUser;
+                    updateConnected();
                     break;
 
                 case "message":
@@ -128,7 +137,7 @@ function connect(username) {
             if (chatbox.value !== "") {
                 ws.send(JSON.stringify({
                     type: "message",
-                    name: username,
+                    name: nick,
                     msg: chatbox.value,
                     nameColor: nameColor
                 }));
@@ -143,20 +152,29 @@ function connect(username) {
         ws.send(JSON.stringify({
             type: "typing",
             data: isTyping,
-            name: username
+            name: nick
         }));
     });
 
     window.onbeforeunload = function() {
         ws.send(JSON.stringify({
             type: "disconnecting",
-            name: username
+            name: nick
         }));
         ws.send(JSON.stringify({
             type: "typing",
             data: false,
-            name: username
+            name: nick
         }));
         ws.close();
     }
+}
+
+function changeName(newUsername) {
+    ws.send(JSON.stringify({
+        type: "editNick",
+        oldName: nick,
+        newName: newUsername
+    }));
+    nick = newUsername;
 }

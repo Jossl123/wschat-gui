@@ -34,7 +34,9 @@ function setPanelTab(tab) {
     document.getElementsByClassName('nav-icon-active')[0].classList.remove('nav-icon-active')
     document.getElementById(`nav-btn-panel-${tab}`).children[0].classList.add('nav-icon-active')
 
+    document.getElementsByClassName('nav-panel-active')[0].classList.add('nav-panel-desactivate')
     document.getElementsByClassName('nav-panel-active')[0].classList.remove('nav-panel-active')
+    document.getElementById(`nav-panel-${tab}`).classList.remove('nav-panel-desactivate')
     document.getElementById(`nav-panel-${tab}`).classList.add('nav-panel-active')
 }
 

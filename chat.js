@@ -17,7 +17,7 @@ function chatMention(user) {
 function connect(username) {
     nick = username;
     ws = new WebSocket(`ws://${document.location.hostname}:9898/`);
-    document.getElementById('app-chat-header-name').innerHTML = `<b>${new URL("ws://127.0.0.1:9898/").host}</b>`;
+    document.getElementById('app-chat-header-name').innerHTML = `<b>${new URL(`ws://${document.location.hostname}:${document.location.port}`).host}</b>`;
 
     let userConnected = [];
 
@@ -61,12 +61,10 @@ function connect(username) {
             let json = JSON.parse(msg.data);
             switch (json.type) {
                 case "newConnection":
-                    if (json.name != nick) {
-                        chat.innerHTML += `<i>${json.name} is connected.</i><br>`;
-                        userConnected = json.onlineUser;
-                        updateConnected();
-                        break;
-                    }
+                    chat.innerHTML += `<i>${json.name} is connected.</i><br>`;
+                    userConnected = json.onlineUser;
+                    updateConnected();
+                    break;
 
                 case "connected":
                     chat.innerHTML += `<i>You're successfully connected as ${json.name}.</i><br>`;
@@ -112,7 +110,7 @@ function connect(username) {
                     chat.innerHTML += `<div class="msg"><b style="color: ${json.nameColor}; height: fit-content">${json.name} </b><span>${json.data}</span><br></div>`;
                     break;
 
-                case "disconnected":
+                case "disconnecting":
                     chat.innerHTML += `<i>${json.name} is disconnected.</i><br>`;
                     userConnected = json.onlineUser;
                     updateConnected();

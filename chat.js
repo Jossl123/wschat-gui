@@ -19,13 +19,19 @@ function connect(username) {
     let userConnected = [];
 
     function updateTyping() {
-        // TODO: use switch
-        if (typingUsers.length == 0) {
-            typing.innerHTML = '<br>';
-        } else if (typingUsers.length == 1) {
-            typing.innerHTML = `<b>${typingUsers[0]}</b> is typing`;
-        } else {
-            typing.innerHTML = `<b>${typingUsers.join(', ')}</b> are typing`;
+
+        switch (typingUsers.length) {
+            case 0:
+                typing.innerHTML = '<br>';
+                break;
+
+            case 1:
+                typing.innerHTML = `<b>${typingUsers[0]}</b> is typing`;
+                break;
+
+            default:
+                typing.innerHTML = `<b>${typingUsers.join(', ')}</b> are typing`;
+                break;
         }
     }
 
@@ -51,47 +57,60 @@ function connect(username) {
 
         ws.onmessage = function(msg) {
             let json = JSON.parse(msg.data);
-            // TODO: use switch
-            if (json.type == "newConnection") {
-                chat.innerHTML += `<i>${json.data} is connected.</i><br>`;
-                userConnected = json.onlineUser;
-                updateConnected();
-            } else if (json.type == "connected") {
-                chat.innerHTML += `<i>You're successfully connected as ${json.data}.</i><br>`;
-                userConnected = json.onlineUser;
-                updateConnected();
-            } else if (json.type == "nameInvalid") {
-                userConnected = json.onlineUser;
-                updateConnected();
-    
-                while (userConnected.includes(username)) {
-                    username = prompt('Username already taken, choose another one.', 'anon').trim();
-                }
-                ws.send(JSON.stringify({
-                    type: "newConnection",
-                    name: username,
-                    nameColor: nameColor
-                }))
-            } else if (json.type == "typing") {
-                if (json.name != username) {
-                    if (json.data) {
-                        if (!typingUsers.includes(json.name)) {
-                            typingUsers.push(json.name);
-                            updateTyping()
-                        }
-                    } else {
-                        if (typingUsers.includes(json.name)) {
-                            typingUsers.splice(typingUsers.indexOf(json.name), 1);
-                            updateTyping()
+            switch (json.type) {
+                case "newConnection":
+                    chat.innerHTML += `<i>${json.data} is connected.</i><br>`;
+                    userConnected = json.onlineUser;
+                    updateConnected();
+                    break;
+
+                case "connected":
+                    chat.innerHTML += `<i>You're successfully connected as ${json.data}.</i><br>`;
+                    userConnected = json.onlineUser;
+                    updateConnected();
+                    break;
+
+                case "nameInvalid":
+                    userConnected = json.onlineUser;
+                    updateConnected();
+                    while (userConnected.includes(username)) {
+                        username = prompt('Username already taken, choose another one.', 'anon').trim();
+                    }
+                    ws.send(JSON.stringify({
+                        type: "newConnection",
+                        name: username,
+                        nameColor: nameColor
+                    }))
+                    break;
+
+                case "typing":
+                    if (json.name != username) {
+                        if (json.data) {
+                            if (!typingUsers.includes(json.name)) {
+                                typingUsers.push(json.name);
+                                updateTyping()
+                            }
+                        } else {
+                            if (typingUsers.includes(json.name)) {
+                                typingUsers.splice(typingUsers.indexOf(json.name), 1);
+                                updateTyping()
+                            }
                         }
                     }
-                }
-            } else if (json.type == "message") {
-                chat.innerHTML += `<div class="msg"><b style="color: ${json.nameColor}; height: fit-content">${json.name} </b><span>${json.data}</span><br></div>`;
-            } else if (json.type == "disconnecting") {
-                chat.innerHTML += `<i>${json.name} is disconnected.</i><br>`;
-                userConnected = json.onlineUser;
-                updateConnected();
+                    break;
+
+                case "message":
+                    chat.innerHTML += `<div class="msg"><b style="color: ${json.nameColor}; height: fit-content">${json.name} </b><span>${json.data}</span><br></div>`;
+                    break;
+
+                case "disconnected":
+                    chat.innerHTML += `<i>${json.name} is disconnected.</i><br>`;
+                    userConnected = json.onlineUser;
+                    updateConnected();
+                    break;
+
+                default:
+                    break;
             }
         };
 
@@ -128,7 +147,7 @@ function connect(username) {
         }));
     });
 
-    window.onbeforeunload = function(){
+    window.onbeforeunload = function() {
         ws.send(JSON.stringify({
             type: "disconnecting",
             name: username

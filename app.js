@@ -1,4 +1,5 @@
 usernameSpan = document.getElementById('nav-panel-bottom-bar-username')
+createServerSpan = document.getElementById('nav-panel-bottom-bar-addserver')
 
 chatBtn = document.getElementById('nav-btn-panel-chat')
 serversBtn = document.getElementById('nav-btn-panel-servers')
@@ -7,11 +8,12 @@ settingsBtn = document.getElementById('nav-btn-panel-settings')
 
 function askUsername(action) {
 
-    username = window.prompt('Enter a username', 'anon').trim();
+    username = window.prompt('Enter a username', 'anon');
 
     if (username == null || username == "") {
         askUsername(action);
     } else {
+        username = username.trim().replace(/ /g, "");
         usernameSpan.innerHTML = username
     }
 
@@ -43,6 +45,7 @@ function setPanelTab(tab) {
 askUsername("connect")
 
 usernameSpan.onclick = function() { askUsername("changeName") }
+createServerSpan.onclick = function() { addServer() }
 
 chatBtn.onclick = function() { setPanelTab('chat') }
 serversBtn.onclick = function() { setPanelTab('servers') }

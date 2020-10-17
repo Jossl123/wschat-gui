@@ -8,6 +8,7 @@ let connected_ul = document.getElementById('nav-chat-connected-list');
 let nick;
 let ws;
 let typingUsers = [];
+let serversListAvaible = [];
 
 function chatMention(user) {
     chatbox.value += `@${user} `;
@@ -20,6 +21,7 @@ function connect(username) {
     document.getElementById('app-chat-header-name').innerHTML = `<b>${new URL(`ws://${document.location.hostname}:${document.location.port}`).host}</b>`;
 
     let userConnected = [];
+    let serversListUser = [];
 
     function updateTyping() {
         switch (typingUsers.length) {
@@ -35,6 +37,10 @@ function connect(username) {
                 typing.innerHTML = `<b>${typingUsers.join(', ')}</b> are typing`;
                 break;
         }
+    }
+
+    function updateServer(){
+
     }
 
     function updateConnected() {
@@ -63,6 +69,7 @@ function connect(username) {
                 case "newConnection":
                     chat.innerHTML += `<i>${json.name} is connected.</i><br>`;
                     userConnected = json.onlineUser;
+                    serversListAvaible = json.serversListAvaible;
                     updateConnected();
                     break;
 
@@ -103,6 +110,7 @@ function connect(username) {
 
                 case "editNick":
                     userConnected = json.onlineUser;
+                    chat.innerHTML += `<i>${json.oldName} change his name for ${json.newName}.</i><br>`;
                     updateConnected();
                     break;
 
@@ -114,6 +122,15 @@ function connect(username) {
                     chat.innerHTML += `<i>${json.name} is disconnected.</i><br>`;
                     userConnected = json.onlineUser;
                     updateConnected();
+                    break;
+
+                case "updateServers":
+                    updateServer();
+                    break;
+                
+                case "newServer":
+                    serversListAvaible = json.serversListAvaible;
+                    updateServer();
                     break;
 
                 default:
@@ -175,4 +192,19 @@ function changeName(newUsername) {
         newName: newUsername
     }));
     nick = newUsername;
+}
+
+function addServer(){
+    serverName = window.prompt('Enter a server name', 'server');
+
+    if (serverName == null || serverName == "") {
+        alert("No server have been added");
+    } else {
+        serverName.trim().replace(/ /g, "");
+        ws.send(JSON.stringify({
+            type: "newServer",
+            serverName: serverName,
+        }))
+        console.log(serversListAvaible);
+    }
 }

@@ -65,11 +65,18 @@ body {
 }
 
 .nav-panel-active {
-    display: inherit;
+    display: flex;
 }
 
 .nav-panel-desactivate {
     display: none;
+}
+
+#nav-panel-chat {
+    width: 100%;
+    height: 100%;
+    background-color: #262626;
+    flex-direction: column;
 }
 
 #nav-panel-content-chat {

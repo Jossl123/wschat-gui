@@ -4,6 +4,7 @@ let chat = document.getElementById('app-chat-msg');
 let chatbox = document.getElementById('chat-textbox');
 let typing = document.getElementById('chat-typing-indicator');
 let connected_ul = document.getElementById('nav-chat-connected-list');
+let servers_ul = document.getElementById('nav-panel-search-serversList');
 
 let nick;
 let ws;
@@ -40,7 +41,11 @@ function connect(username) {
     }
 
     function updateServer(){
+        servers_ul.innerHTML = "";
 
+        for (let i in serversListAvaible) {
+            servers_ul.innerHTML += `<li class="nav-panel-search-servers">${serversListAvaible[i]}</li>`;
+        }
     }
 
     function updateConnected() {
@@ -71,6 +76,7 @@ function connect(username) {
                     userConnected = json.onlineUser;
                     serversListAvaible = json.serversListAvaible;
                     updateConnected();
+                    updateServer();
                     break;
 
                 case "connected":
@@ -124,10 +130,6 @@ function connect(username) {
                     updateConnected();
                     break;
 
-                case "updateServers":
-                    updateServer();
-                    break;
-                
                 case "newServer":
                     serversListAvaible = json.serversListAvaible;
                     updateServer();
@@ -205,6 +207,5 @@ function addServer(){
             type: "newServer",
             serverName: serverName,
         }))
-        console.log(serversListAvaible);
     }
 }

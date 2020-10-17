@@ -88,6 +88,10 @@ ul {
     overflow-y: auto;
 }
 
+.nav-panel-search-servers {
+    display: block;
+}
+
 #nav-chat-connected-list {
     padding: 0 1rem;
 }

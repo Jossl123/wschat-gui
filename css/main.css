@@ -90,6 +90,7 @@ ul {
 
 .nav-panel-search-servers {
     display: block;
+    cursor: pointer;
 }
 
 #nav-chat-connected-list {

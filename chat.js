@@ -5,6 +5,7 @@ let chatbox = document.getElementById('chat-textbox');
 let typing = document.getElementById('chat-typing-indicator');
 let connected_ul = document.getElementById('nav-chat-connected-list');
 let servers_ul = document.getElementById('nav-panel-search-serversList');
+let serversUser_ul = document.getElementById('nav-panel-content-serverList');
 
 let nick;
 let ws;
@@ -44,8 +45,18 @@ function connect(username) {
         servers_ul.innerHTML = "";
 
         for (let i in serversListAvaible) {
-            servers_ul.innerHTML += `<li class="nav-panel-search-servers">${serversListAvaible[i]}</li>`;
+            servers_ul.innerHTML += `<li class="nav-panel-search-servers" id="nav-panel-search-servers-${serversListAvaible[i]}">${serversListAvaible[i]}</li>`;
         }
+    }
+
+    function updateServerUser(){
+        serversUser_ul.innerHTML = "";
+
+        for (let i in serversListAvaible) {
+            serversUser_ul.innerHTML += `<li class="nav-panel-content-servers" id="nav-panel-search-servers-${serversListUser[i]}">${serversListUser[i]}</li>`;
+        }
+        
+        setPanelTab('chat');
     }
 
     function updateConnected() {
@@ -54,6 +65,13 @@ function connect(username) {
         for (let i in userConnected) {
             connected_ul.innerHTML += `<li class="nav-chat-connected-user" onclick="chatMention('${userConnected[i]}')">${userConnected[i]}</li>`;
         }
+    }
+
+    function serverSearchClicked(serverClickedName){
+        ws.send(JSON.stringify({
+            type: "newServerUsers",
+            serverName: serverClickedName
+        }))
     }
 
     ws.onopen = function() {
@@ -135,6 +153,11 @@ function connect(username) {
                     updateServer();
                     break;
 
+                case "newServerUsers":
+                    serversListUser = json.serversListUser;
+                    updateServerUser();
+                    break;
+
                 default:
                     break;
             }
@@ -173,6 +196,13 @@ function connect(username) {
         }));
     });
 
+    document.getElementById("nav-panel-search").addEventListener('click', function(event){
+        for (let i in serversListAvaible) {
+            document.getElementById(`nav-panel-search-servers-${serversListAvaible[i]}`).onclick = function() {serverSearchClicked(serversListAvaible[i])};
+        }
+    
+    })
+
     window.onbeforeunload = function() {
         ws.send(JSON.stringify({
             type: "disconnecting",
@@ -203,9 +233,13 @@ function addServer(){
         alert("No server have been added");
     } else {
         serverName.trim().replace(/ /g, "");
-        ws.send(JSON.stringify({
-            type: "newServer",
-            serverName: serverName,
-        }))
+        if (serversListAvaible.includes(serverName)) {
+            alert("Server name already used");
+        } else {
+            ws.send(JSON.stringify({
+                type: "newServer",
+                serverName: serverName,
+            }))
+        }
     }
 }

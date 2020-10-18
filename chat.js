@@ -52,7 +52,7 @@ function connect(username) {
     function updateServerUser(){
         serversUser_ul.innerHTML = "";
 
-        for (let i in serversListAvaible) {
+        for (let i in serversListUser) {
             serversUser_ul.innerHTML += `<li class="nav-panel-content-servers" id="nav-panel-search-servers-${serversListUser[i]}">${serversListUser[i]}</li>`;
         }
         
@@ -154,8 +154,13 @@ function connect(username) {
                     break;
 
                 case "newServerUsers":
-                    serversListUser = json.serversListUser;
-                    updateServerUser();
+                    if (serversListUser.includes(json.serverName)) {
+                        alert("You are already in this server")
+                    } else {
+                        serversListUser = json.serversListUser;
+                        console.log(serversListUser);
+                        updateServerUser();
+                    }
                     break;
 
                 default:
@@ -179,7 +184,7 @@ function connect(username) {
                     type: "message",
                     name: nick,
                     msg: chatbox.value,
-                    nameColor: nameColor
+                    nameColor: nameColor,
                 }));
                 chatbox.value = "";
             };
